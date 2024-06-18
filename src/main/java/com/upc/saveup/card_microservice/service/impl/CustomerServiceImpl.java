@@ -13,7 +13,7 @@ public class CustomerServiceImpl {
     public CustomerDto getCustomerById(int customerId) {
         return webClientBuilder.build()
                 .get()
-                .uri("http://localhost:8080/api/saveup/v1/customers/" + customerId)
+                .uri("http://192.168.56.1:8082/api/saveup/v1/customers/" + customerId)
                 .retrieve()
                 .bodyToMono(CustomerDto.class)
                 .block();

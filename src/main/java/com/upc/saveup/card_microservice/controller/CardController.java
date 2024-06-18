@@ -1,11 +1,11 @@
 package com.upc.saveup.card_microservice.controller;
 
 
+import com.upc.saveup.card_microservice.dto.CardDto;
 import com.upc.saveup.card_microservice.exception.*;
 import com.upc.saveup.card_microservice.model.Card;
 import com.upc.saveup.card_microservice.repository.CardRepository;
 import com.upc.saveup.card_microservice.service.CardService;
-import com.upc.saveup.card_microservice.service.CustomerCardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +20,6 @@ import java.util.List;
 public class CardController {
     @Autowired
     private CardService cardService;
-    private CustomerCardService customerCardService;
     private final CardRepository cardRepository;
 
     @Autowired
@@ -57,14 +56,12 @@ public class CardController {
     @Transactional
     @CrossOrigin(origins = "http://localhost:4200")
     @PostMapping("/cards")
-    public ResponseEntity<Card> createCard(@RequestBody Card card) {
-        validateCard(card);
-        existsCardByCardNumberAndCVV(card);
-        existsCustomerByCardName(card);
-        existsCustomerByPCardNumber(card);
-        Card createdCard = cardService.createCard(card);
-        customerCardService.addCardToCustomer(card.getCustomerId(), createdCard.getId());
-        return new ResponseEntity<>(createdCard, HttpStatus.CREATED);
+    public ResponseEntity<CardDto> createCard(@RequestBody CardDto cardDto) {
+        validateCard(cardDto);
+        existsCardByCardNumberAndCVV(cardDto);
+        existsCustomerByCardName(cardDto);
+        existsCustomerByPCardNumber(cardDto);
+        return new ResponseEntity<>(cardService.createCard(cardDto), HttpStatus.CREATED);
     }
 
 
@@ -73,13 +70,12 @@ public class CardController {
     @Transactional
     @CrossOrigin(origins = "http://localhost:4200")
     @PutMapping("/cards/{id}")
-    public ResponseEntity<Object> updateCard(@PathVariable("id") int id,@RequestBody Card card){
+    public ResponseEntity<Object> updateCard(@PathVariable("id") int id,@RequestBody CardDto cardDto){
         boolean isExist=cardService.isCardExist(id);
         if(isExist){
-            validateCard(card);
-            card.setId(id);
-            cardService.updateCard(card);
-            customerCardService.addCardToCustomer(card.getCustomerId(), card.getId());
+            validateCard(cardDto);
+            cardDto.setId(id);
+            cardService.updateCard(cardDto);
             return new ResponseEntity<>("Card is updated succesfully", HttpStatus.OK);
         }else{
             throw new ValidationException("Error al actualizar el card");
@@ -102,43 +98,43 @@ public class CardController {
         }
     }
 
-    private void existsCardByCardNumberAndCVV(Card card){
-        if(cardRepository.existsByCardNumberAndCvv(card.getCardNumber(), card.getCvv())){
+    private void existsCardByCardNumberAndCVV(CardDto cardDto){
+        if(cardRepository.existsByCardNumberAndCvv(cardDto.getCardNumber(), cardDto.getCvv())){
             throw new ValidationException("No se puede registrar la tarjeta porque existe uno con el card name y cvv");
         }
     }
-    private void existsCustomerByCardName(Card card){
-        if(cardRepository.existsByCardName(card.getCardName())){
+    private void existsCustomerByCardName(CardDto cardDto){
+        if(cardRepository.existsByCardName(cardDto.getCardName())){
             throw new ValidationException("No se puede registrar la tarjeta porque existe uno con el card name");
         }
     }
-    private void existsCustomerByPCardNumber(Card card){
-        if(cardRepository.existsByCardNumber(card.getCardNumber())){
+    private void existsCustomerByPCardNumber(CardDto cardDto){
+        if(cardRepository.existsByCardNumber(cardDto.getCardNumber())){
             throw new ValidationException("No se puede registrar la tarjeta porque existe uno con el card number");
         }
     }
 
-    private void validateCard(Card card){
+    private void validateCard(CardDto cardDto){
 
-        if (card.getCardName()== null || card.getCardName().trim().isEmpty()) {
+        if (cardDto.getCardName()== null || cardDto.getCardName().trim().isEmpty()) {
             throw new ValidationException("El nombre de la tarjeta debe ser obligatorio");
         }
 
-        if (card.getCardNumber()== null || card.getCardNumber().trim().isEmpty()) {
+        if (cardDto.getCardNumber()== null || cardDto.getCardNumber().trim().isEmpty()) {
             throw new ValidationException("El numero de la tarjeta debe ser obligatorio");
         }
 
-        if (card.getCvv()== null || card.getCvv().trim().isEmpty()) {
+        if (cardDto.getCvv()== null || cardDto.getCvv().trim().isEmpty()) {
             throw new ValidationException("El cvv de la tarjeta debe ser obligatorio");
         }
 
-        if(card.getCardName().length()>20){
+        if(cardDto.getCardName().length()>20){
             throw new ValidationException("El nombre de la tarjeta no debe exceder los 20 caracteres");
         }
-        if(card.getCardNumber().length() != 16){
+        if(cardDto.getCardNumber().length() != 16){
             throw new ValidationException("El numero de la tarjeta debe tener 16 digitos");
         }
-        if(card.getCvv().length() != 3){
+        if(cardDto.getCvv().length() != 3){
             throw new ValidationException("El cvv de la tarjeta debe tener 3 digitos");
         }
 
