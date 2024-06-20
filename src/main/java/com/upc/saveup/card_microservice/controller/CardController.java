@@ -51,6 +51,19 @@ public class CardController {
         }
     }
 
+    @Transactional(readOnly = true)
+    @CrossOrigin(origins = "http://localhost:4200")
+    @GetMapping("/cards/card/{cardNumber}/customer/{customerId}")
+    public ResponseEntity<Card> getCardByCardNumberAndCustomerId(@PathVariable("cardNumber") String cardNumber, @PathVariable("customerId") int customerId){
+        Card card =cardRepository.findByCardNumberAndCustomerId(cardNumber, customerId);
+
+        if(card!=null){
+            return new ResponseEntity<>(card, HttpStatus.OK);
+        }else{
+            throw new ValidationException("Error al obtener el card");
+        }
+    }
+
     //EndPoint: localhost:8080/api/saveup/v1/cards
     //Method: POST
     @Transactional

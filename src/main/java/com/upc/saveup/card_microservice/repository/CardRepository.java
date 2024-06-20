@@ -9,6 +9,7 @@ public interface CardRepository extends JpaRepository<Card,Integer> {
     Card findByCardName(String cardName);
     Card findByCardNumber(String cardNumber);
     Card findByCvv(String cvv);
+    Card findByCardNumberAndCustomerId(String cardNumber, int customerId);
 
     List<Card> findByCustomerId(int customerId);
     boolean existsByCardName(String cardName);
